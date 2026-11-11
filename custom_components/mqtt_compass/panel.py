@@ -26,7 +26,7 @@ class PanelView(HomeAssistantView):
 
     url = f"{API_PREFIX}/static/index.html"
     name = f"api:mqtt_compass:panel"
-    requires_auth = True
+    requires_auth = False  # HTML-Huelle ohne Nutzerdaten; Daten-Endpunkte bleiben auth
 
     async def get(self, request) -> Any:
         """Return the HTML of the panel."""
