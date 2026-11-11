@@ -40,6 +40,30 @@ def _service(hass: HomeAssistant) -> BrokerService:
     return service
 
 
+async def _apply_broker_update(request: Any, service: BrokerService) -> Any:
+    """Validate incoming settings, keep a blank password, apply and reconnect."""
+    try:
+        body = await request.json()
+    except (json.JSONDecodeError, ValueError):
+        return _error(400, "The body is not valid JSON.")
+
+    incoming = dict(body)
+    password = incoming.pop("password", None)
+    if password is None and incoming.get("username") == service.settings.username:
+        incoming["password"] = service.settings.password
+    else:
+        incoming["password"] = password
+
+    settings = service.settings.__class__(**incoming)
+    try:
+        settings.validate()
+    except (TypeError, ValueError) as err:
+        return _error(400, str(err))
+
+    await service.apply_settings(settings)
+    return {"ok": True, "message": "Reconnected."}
+
+
 class HomeAssistantError(Exception):
     """The integration is not ready."""
 
@@ -74,6 +98,11 @@ class BrokersView(HomeAssistantView):
         }
 
 
+    async def post(self, request) -> Any:
+        """Create/replace the single broker from the UI and reconnect."""
+        return await _apply_broker_update(request, _service(request.app["hass"]))
+
+
 class BrokerView(HomeAssistantView):
     """The settings of one broker."""
 
@@ -88,27 +117,7 @@ class BrokerView(HomeAssistantView):
 
     async def put(self, request) -> Any:
         """Change the settings and reconnect."""
-        service = _service(request.app["hass"])
-        try:
-            body = await request.json()
-        except (json.JSONDecodeError, ValueError):
-            return _error(400, "The body is not valid JSON.")
-
-        incoming = dict(body)
-        password = incoming.pop("password", None)
-        if password is None and incoming.get("username") == service.settings.username:
-            incoming["password"] = service.settings.password
-        else:
-            incoming["password"] = password
-
-        settings = service.settings.__class__(**incoming)
-        try:
-            settings.validate()
-        except (TypeError, ValueError) as err:
-            return _error(400, str(err))
-
-        await service.apply_settings(settings)
-        return {"ok": True, "message": "Reconnected."}
+        return await _apply_broker_update(request, _service(request.app["hass"]))
 
 
 class TreeView(HomeAssistantView):
