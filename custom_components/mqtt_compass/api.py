@@ -61,7 +61,7 @@ async def _apply_broker_update(request: Any, service: BrokerService) -> Any:
         return _error(400, str(err))
 
     await service.apply_settings(settings)
-    return {"ok": True, "message": "Reconnected."}
+    return HomeAssistantView.json({"ok": True, "message": "Reconnected."})
 
 
 class HomeAssistantError(Exception):
@@ -79,7 +79,7 @@ class BrokersView(HomeAssistantView):
         """Return the list with the status of every broker."""
         service = _service(request.app["hass"])
         status = service.status()
-        return {
+        return self.json({
             "brokers": [
                 {
                     "id": service.settings.id,
@@ -95,7 +95,7 @@ class BrokersView(HomeAssistantView):
                     "messageCount": status["messageCount"],
                 }
             ]
-        }
+        })
 
 
     async def post(self, request) -> Any:
@@ -113,7 +113,7 @@ class BrokerView(HomeAssistantView):
     async def get(self, request) -> Any:
         """Return the settings. The password is masked."""
         service = _service(request.app["hass"])
-        return {"broker": service.settings.to_dict(with_secret=False)}
+        return self.json({"broker": service.settings.to_dict(with_secret=False)})
 
     async def put(self, request) -> Any:
         """Change the settings and reconnect."""
@@ -131,7 +131,7 @@ class TreeView(HomeAssistantView):
         """Return the tree. The payloads can be cut - see the standalone server."""
         service = _service(request.app["hass"])
         length = _max_value_length(request)
-        return service.tree.snapshot(length)
+        return self.json(service.tree.snapshot(length))
 
 
 class ValueView(HomeAssistantView):
@@ -147,7 +147,7 @@ class ValueView(HomeAssistantView):
         value = service.tree.value_of(request.query.get("topic", ""))
         if value is None:
             return _error(404, "There is no value for this topic.")
-        return value
+        return self.json(value)
 
 
 class UpdatesView(HomeAssistantView):
@@ -164,7 +164,7 @@ class UpdatesView(HomeAssistantView):
             since = int(request.query.get("since", "0"))
         except ValueError:
             since = 0
-        return {"sequence": service.tree.sequence, "changes": service.tree.changes_since(since)}
+        return self.json({"sequence": service.tree.sequence, "changes": service.tree.changes_since(since)})
 
 
 class StatusView(HomeAssistantView):
@@ -176,7 +176,7 @@ class StatusView(HomeAssistantView):
 
     async def get(self, request) -> Any:
         """Return the status."""
-        return _service(request.app["hass"]).status()
+        return self.json(_service(request.app["hass"]).status())
 
 
 class PublishView(HomeAssistantView):
@@ -208,7 +208,7 @@ class PublishView(HomeAssistantView):
         except (RuntimeError, ValueError) as err:
             return _error(400, str(err))
 
-        return {"ok": True, "message": f"Published (mid={mid})."}
+        return self.json({"ok": True, "message": f"Published (mid={mid})."})
 
 
 def _max_value_length(request) -> int | None:
