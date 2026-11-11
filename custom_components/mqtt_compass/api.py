@@ -29,6 +29,18 @@ from .core.broker import BrokerService
 _log = logging.getLogger(__name__)
 
 
+def _hass(request: Any) -> HomeAssistant:
+    """Return hass from the app - works with AppKey (2026.11) and plain str keys (older)."""
+    try:
+        from homeassistant.helpers.http import KEY_HASS
+
+        if KEY_HASS in request.app:
+            return request.app[KEY_HASS]
+    except ImportError:
+        pass
+    return request.app["hass"]
+
+
 def _service(hass: HomeAssistant) -> BrokerService:
     """Return the service of the only broker."""
     entries = hass.config_entries.async_entries(DOMAIN)
@@ -77,7 +89,7 @@ class BrokersView(HomeAssistantView):
 
     async def get(self, request) -> Any:
         """Return the list with the status of every broker."""
-        service = _service(request.app["hass"])
+        service = _service(_hass(request))
         status = service.status()
         return self.json({
             "brokers": [
@@ -100,7 +112,7 @@ class BrokersView(HomeAssistantView):
 
     async def post(self, request) -> Any:
         """Create/replace the single broker from the UI and reconnect."""
-        return await _apply_broker_update(request, _service(request.app["hass"]))
+        return await _apply_broker_update(request, _service(_hass(request)))
 
 
 class BrokerView(HomeAssistantView):
@@ -112,12 +124,12 @@ class BrokerView(HomeAssistantView):
 
     async def get(self, request) -> Any:
         """Return the settings. The password is masked."""
-        service = _service(request.app["hass"])
+        service = _service(_hass(request))
         return self.json({"broker": service.settings.to_dict(with_secret=False)})
 
     async def put(self, request) -> Any:
         """Change the settings and reconnect."""
-        return await _apply_broker_update(request, _service(request.app["hass"]))
+        return await _apply_broker_update(request, _service(_hass(request)))
 
 
 class TreeView(HomeAssistantView):
@@ -129,7 +141,7 @@ class TreeView(HomeAssistantView):
 
     async def get(self, request) -> Any:
         """Return the tree. The payloads can be cut - see the standalone server."""
-        service = _service(request.app["hass"])
+        service = _service(_hass(request))
         length = _max_value_length(request)
         return self.json(service.tree.snapshot(length))
 
@@ -143,7 +155,7 @@ class ValueView(HomeAssistantView):
 
     async def get(self, request) -> Any:
         """Return the value of the topic."""
-        service = _service(request.app["hass"])
+        service = _service(_hass(request))
         value = service.tree.value_of(request.query.get("topic", ""))
         if value is None:
             return _error(404, "There is no value for this topic.")
@@ -159,7 +171,7 @@ class UpdatesView(HomeAssistantView):
 
     async def get(self, request) -> Any:
         """Return the changes."""
-        service = _service(request.app["hass"])
+        service = _service(_hass(request))
         try:
             since = int(request.query.get("since", "0"))
         except ValueError:
@@ -176,7 +188,7 @@ class StatusView(HomeAssistantView):
 
     async def get(self, request) -> Any:
         """Return the status."""
-        return self.json(_service(request.app["hass"]).status())
+        return self.json(_service(_hass(request)).status())
 
 
 class PublishView(HomeAssistantView):
@@ -188,7 +200,7 @@ class PublishView(HomeAssistantView):
 
     async def post(self, request) -> Any:
         """Publish the message."""
-        service = _service(request.app["hass"])
+        service = _service(_hass(request))
         try:
             body = await request.json()
         except (json.JSONDecodeError, ValueError):

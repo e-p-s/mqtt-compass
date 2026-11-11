@@ -30,6 +30,17 @@ def _known_fields(cls: type, data: dict[str, Any]) -> dict[str, Any]:
 class BrokerSettings:
     """Everything needed to reach an MQTT broker."""
 
+    def __post_init__(self) -> None:
+        """HA 2026 msgpack storage may deliver text values as bytes - normalize them."""
+        import contextlib
+        from dataclasses import fields
+
+        for f in fields(self):
+            value = getattr(self, f.name)
+            if isinstance(value, bytes):
+                with contextlib.suppress(UnicodeDecodeError):
+                    setattr(self, f.name, value.decode("utf-8"))
+
     id: str = ""
     """The internal id. It is built from the host and the port if it is not given."""
 
