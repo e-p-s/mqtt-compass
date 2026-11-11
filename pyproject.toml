@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mqtt-compass"
-version = "0.1.7"
+version = "2026.1.alpha1"
 description = "A MQTT explorer with a classic object tree."
 readme = "README.md"
 requires-python = ">=3.11"
