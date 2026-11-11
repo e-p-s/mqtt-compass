@@ -7,7 +7,7 @@ import urllib.request
 
 tree = json.loads(
     urllib.request.urlopen(
-        "http://127.0.0.1:8088/api/brokers/127.0.0.1-1883/tree?maxValueLength=120"
+        "http://127.0.0.1:8088/api/brokers/mqtt-1883/tree?maxValueLength=120"
     ).read()
 )
 

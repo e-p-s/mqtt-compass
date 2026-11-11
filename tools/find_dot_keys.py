@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import urllib.request
 
-BROKER = "127.0.0.1-1883"
+BROKER = "mqtt-1883"
 
 tree = json.loads(
     urllib.request.urlopen(

@@ -139,7 +139,7 @@ Vorrangfolge ist: Argument, dann Umgebungsvariable, dann Konfigurationsdatei.
 ### Zugriffsschutz
 
 Mit `server.auth_token` verlangt die API einen Bearer-Token. Der Token kann als Query-Parameter
-übergeben werden: `http://localhost:8088/?token=geheim`.
+übergeben werden: `http://localhost:8088/?token=DEIN_TOKEN`.
 
 ## API
 
@@ -216,44 +216,32 @@ python tools/sync_ha_core.py --check  # nur prüfen (für CI)
 
 ## Entwicklung
 
-Der Projektstamm liegt auf dem gemeinsamen Tank: `Z:\coding\mqtt-compass` (Windows) —
-auf buildbox dasselbe unter `/mnt/coding/mqtt-compass`. Das Git-Repository liegt dort.
-
-Ein Dev-Klon für die Arbeit an diesem Rechner:
-
-```
-Z:\coding\mqtt-compass  --klonen-->  Documents\mqtt-compass-dev
-```
-
-`venv` und `node_modules` bleiben **lokal** (auf dem gemappten Netzlaufwerk sind Tausende
-kleiner Dateien zu langsam):
+Das Repository ist das kanonische Projekt. Für die Arbeit an einem Rechner empfiehlt sich
+ein lokaler Klon — `venv` und `node_modules` sollten **lokal** liegen (auf gemappten
+Netzlaufwerken sind Tausende kleiner Dateien zu langsam):
 
 ```bash
-# Backend (venv lokal, zeigt auf das Projekt)
-python -m venv C:\Users\dev-user\Documents\mqtt-compass-venv
-C:\Users\dev-user\Documents\mqtt-compass-venv\Scripts\pip install -e "Z:\coding\mqtt-compass[server,dev]"
+git clone <dieses-Repo> mqtt-compass-dev
+cd mqtt-compass-dev
 
-# Frontend (im lokalen Klon, nie auf Z:)
-cd <Klon>\frontend
+# Backend
+python -m venv ../mqtt-compass-venv
+../mqtt-compass-venv/bin/pip install -e ".[server,dev]"
+
+# Frontend
+cd frontend
 npm install
 npm test
-npm run build     # baut nach ..\mqtt_compass\static (im Klon)
+npm run build     # baut nach ../mqtt_compass/static
 ```
 
-Änderungen im Klon: `git commit` und `git push` — der Arbeitsbaum auf `Z:` wird durch
-`receive.denyCurrentBranch = updateInstead` direkt mit aktualisiert, buildbox sieht sie sofort.
+Änderungen im Klon ganz normal mit `git commit` und `git push`.
 
-Der Push zu GitHub (`e-p-s/mqtt-compass`) läuft auf buildbox:
-
-```bash
-bash /mnt/coding/mqtt-compass/tools/publish_github.sh   # braucht den PAT aus ~/.git-credentials
-```
-
-Für die Entwicklung gibt es einen kleinen MQTT-Broker (mit dem lokalen venv):
+Für lokale Tests ohne echten Broker gibt es einen Mini-Broker (mit dem venv):
 
 ```bash
-C:\Users\dev-user\Documents\mqtt-compass-venv\Scripts\python tools\dev_broker.py       # Broker auf 127.0.0.1:1883
-C:\Users\dev-user\Documents\mqtt-compass-venv\Scripts\python tools\publish_sample.py   # Beispiel-Topics publizieren
+../mqtt-compass-venv/bin/python tools/dev_broker.py       # Broker auf 127.0.0.1:1883
+../mqtt-compass-venv/bin/python tools/publish_sample.py   # Beispiel-Topics publizieren
 ```
 
 ## Home Assistant
@@ -290,17 +278,17 @@ Die Integration öffnet eine **eigene** MQTT-Verbindung: die MQTT-Integration vo
 kann nur die konfigurierten Topics abonnieren, ein Explorer muss aber alles sehen, was der
 Broker kennt. Genutzt wird nur lesend — bis jemand im Panel eine Nachricht publiziert.
 
-**Status:** Die Integration ist implementiert und der Kern wird von denselben Tests abgedeckt
-wie der eigenständige Server, aber sie ist noch **nicht gegen eine laufende HA-Instanz
-getestet**. Die Live-Aktualisierungen laufen im Panel über Polling (`/api/mqtt_compass/updates`),
-weil die iframe-Karte keinen eigenen WebSocket öffnen kann. Die Authentifizierung liest das
-Panel aus dem Local Storage des übergeordneten Fensters (gleiche Origin).
+**Status:** Die Integration ist implementiert und seit v0.1.7 gegen Home Assistant 2026.11
+live getestet (Panel im Seitenband, Broker-Verbindung, Publish). Die Live-Aktualisierungen
+laufen im Panel über Polling (`/api/mqtt_compass/updates`), weil das Panel-iframe keinen
+eigenen WebSocket öffnet. Die Authentifizierung liest das Panel aus dem Local Storage des
+übergeordneten Fensters (gleiche Origin).
 
 ### Nächste Schritte
 
 - [x] `hacs.json` für die Installation über HACS (liegt im Wurzelverzeichnis)
-- [ ] Die Integration gegen eine laufende HA-Instanz testen
-- [ ] Ein echtes Panel-Plugin (`panel_custom`) statt der iframe-Karte
+- [x] Die Integration gegen eine laufende HA-Instanz testen (HA 2026.11, v0.1.7)
+- [x] Ein echtes Panel-Plugin (`panel_custom`) statt der iframe-Karte (seit v0.1.2)
 - [ ] Topic-Liste als JSON/YAML exportieren
 - [ ] Wertehistorie (die Anbindung an `recorder` fehlt noch)
 

@@ -6,7 +6,7 @@ import json
 import sys
 import urllib.request
 
-BROKER = "127.0.0.1-1883"
+BROKER = "mqtt-1883"
 BASE = f"http://127.0.0.1:8088/api/brokers/{BROKER}"
 
 

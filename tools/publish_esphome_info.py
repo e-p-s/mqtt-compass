@@ -16,7 +16,7 @@ PAYLOAD = json.dumps(
         "platform": "ESP32",
         "board": "wemos_d1_mini32",
         "network": "wifi",
-        "project_name": "syssi.esphome-demo-dl24",
+        "project_name": "syssi.esphome-demo",
         "project_version": "2.1.0",
     }
 )
