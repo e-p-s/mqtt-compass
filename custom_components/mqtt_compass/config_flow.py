@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlowWithConfigEntry, OptionsFlowWithConfigEntry
 from homeassistant.core import callback
 
 from .const import (
@@ -70,16 +70,16 @@ class MqttExplorerConfigFlow(ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry: Any) -> Any:
         """Return the options flow."""
-        return MqttExplorerOptionsFlow()
+        return MqttExplorerOptionsFlow(config_entry)
 
 
-class MqttExplorerOptionsFlow(ConfigFlow):
+class MqttExplorerOptionsFlow(OptionsFlowWithConfigEntry):
     """Handle the options of an existing entry."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            return self.async_create_entry(data=user_input)
 
         options = self.config_entry.options
         schema = vol.Schema(

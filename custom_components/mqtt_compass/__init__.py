@@ -17,6 +17,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from homeassistant.components import panel_custom
 from homeassistant.components.http import HomeAssistantView, StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -85,6 +86,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 [StaticPathConfig(f"/api/mqtt_compass/static/assets", str(STATIC_DIR / "assets"))]
             )
 
+        # Sidebar panel: the loader module renders the web UI in an iframe.
+        await panel_custom.async_register_panel(
+            hass,
+            frontend_url_path=DOMAIN,
+            webcomponent_name="mqtt-compass-panel",
+            module_url=f"{API_PREFIX}/static/assets/panel-loader.js",
+            sidebar_title="MQTT Compass",
+            sidebar_icon="mdi:compass",
+            embed_iframe=False,
+            require_admin=False,
+        )
         hass.data[DOMAIN]["_views_registered"] = True
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
@@ -97,6 +109,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     service: BrokerService | None = hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
     if service is not None:
         await service.stop()
+    remaining = [v for v in hass.data.get(DOMAIN, {}).values() if isinstance(v, BrokerService)]
+    if not remaining:
+        try:
+            await panel_custom.async_remove_panel(hass, DOMAIN)
+        except Exception:  # panel already gone
+            pass
     return True
 
 

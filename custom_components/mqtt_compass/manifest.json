@@ -3,11 +3,11 @@
     "name": "MQTT Compass",
     "codeowners": ["e-p-s"],
     "config_flow": true,
-    "dependencies": ["http"],
+    "dependencies": ["http", "panel_custom"],
     "documentation": "https://github.com/e-p-s/mqtt-compass",
     "integration_type": "service",
     "iot_class": "local_push",
     "issue_tracker": "https://github.com/e-p-s/mqtt-compass/issues",
     "requirements": ["paho-mqtt>=2.1"],
-    "version": "0.1.1"
+    "version": "0.1.2"
 }
