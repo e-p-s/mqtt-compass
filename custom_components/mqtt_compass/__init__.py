@@ -33,6 +33,7 @@ from .api import (
     ValueView,
 )
 from .const import (
+    API_PREFIX,
     CONF_CLIENT_ID,
     CONF_HOST,
     CONF_KEEPALIVE,
