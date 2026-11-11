@@ -1,0 +1,26 @@
+services:
+    mqtt-compass:
+        build: .
+        image: mqtt-compass
+        container_name: mqtt-compass
+        restart: unless-stopped
+        ports:
+            - "8088:8088"
+        environment:
+            MQTT_COMPASS_BROKER_HOST: mosquitto
+            MQTT_COMPASS_BROKER_PORT: "1883"
+            # MQTT_COMPASS_BROKER_USERNAME: ""
+            # MQTT_COMPASS_BROKER_PASSWORD: ""
+            # MQTT_COMPASS_TOKEN: "a-long-token-for-the-api"
+        depends_on:
+            - mosquitto
+
+    mosquitto:
+        image: eclipse-mosquitto:2
+        container_name: mosquitto
+        restart: unless-stopped
+        ports:
+            - "1883:1883"
+        command: >-
+            sh -c "printf 'listener 1883\nallow_anonymous true\n' > /mosquitto/config/mosquitto.conf
+            && /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf"

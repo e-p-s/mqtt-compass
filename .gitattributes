@@ -1,0 +1,14 @@
+# Normalize line endings - the repository stores LF, the checkout uses the platform's.
+* text=auto
+
+# These are always LF - they are read by tools on Linux too.
+*.py text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.sh text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+# Built assets are not diffed - keep them as they are.
+*.js -text
+*.css -text

@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# The built web UI of the standalone package - it is created by `npm run build`.
+# Only the one in the package root! The copy in `custom_components/mqtt_compass/static`
+# IS tracked, because HACS installs the integration directly from the repository
+# without a build step.
+/mqtt_compass/static/
+
+# The configuration of a local installation - it contains broker credentials!
+mqtt-compass.json
+server.log
+
+# The archive for the publish hand-over
+mqtt-compass-*.zip
+
+# Editors
+.idea/
+.vscode/
+*.swp
+.DS_Store
