@@ -216,25 +216,44 @@ python tools/sync_ha_core.py --check  # nur prüfen (für CI)
 
 ## Entwicklung
 
-```bash
-# Backend
-python -m venv .venv
-.venv/Scripts/pip install -e ".[server,dev]"
-.venv/Scripts/pytest
+Der Projektstamm liegt auf dem gemeinsamen Tank: `Z:\coding\mqtt-compass` (Windows) —
+auf buildbox dasselbe unter `/mnt/coding/mqtt-compass`. Das Git-Repository liegt dort.
 
-# Frontend
-cd frontend
-npm install
-npm test          # vitest
-npm run build     # baut nach ../mqtt_compass/static
-npm run dev       # Entwicklungsserver auf :5173, proxied auf :8088
+Ein Dev-Klon für die Arbeit an diesem Rechner:
+
+```
+Z:\coding\mqtt-compass  --klonen-->  Documents\mqtt-compass-dev
 ```
 
-Für die Entwicklung gibt es einen kleinen MQTT-Broker:
+`venv` und `node_modules` bleiben **lokal** (auf dem gemappten Netzlaufwerk sind Tausende
+kleiner Dateien zu langsam):
 
 ```bash
-.venv/Scripts/python tools/dev_broker.py            # Broker auf 127.0.0.1:1883
-.venv/Scripts/python tools/publish_sample.py        # Beispiel-Topics publizieren
+# Backend (venv lokal, zeigt auf das Projekt)
+python -m venv C:\Users\dev-user\Documents\mqtt-compass-venv
+C:\Users\dev-user\Documents\mqtt-compass-venv\Scripts\pip install -e "Z:\coding\mqtt-compass[server,dev]"
+
+# Frontend (im lokalen Klon, nie auf Z:)
+cd <Klon>\frontend
+npm install
+npm test
+npm run build     # baut nach ..\mqtt_compass\static (im Klon)
+```
+
+Änderungen im Klon: `git commit` und `git push` — der Arbeitsbaum auf `Z:` wird durch
+`receive.denyCurrentBranch = updateInstead` direkt mit aktualisiert, buildbox sieht sie sofort.
+
+Der Push zu GitHub (`e-p-s/mqtt-compass`) läuft auf buildbox:
+
+```bash
+bash /mnt/coding/mqtt-compass/tools/publish_github.sh   # braucht den PAT aus ~/.git-credentials
+```
+
+Für die Entwicklung gibt es einen kleinen MQTT-Broker (mit dem lokalen venv):
+
+```bash
+C:\Users\dev-user\Documents\mqtt-compass-venv\Scripts\python tools\dev_broker.py       # Broker auf 127.0.0.1:1883
+C:\Users\dev-user\Documents\mqtt-compass-venv\Scripts\python tools\publish_sample.py   # Beispiel-Topics publizieren
 ```
 
 ## Home Assistant
