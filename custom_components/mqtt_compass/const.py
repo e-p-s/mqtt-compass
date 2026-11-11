@@ -28,3 +28,7 @@ DEFAULT_PORT = 1883
 DEFAULT_KEEPALIVE = 60
 DEFAULT_SUBSCRIBE = "#"
 DEFAULT_PROTOCOL = "3.1.1"
+
+#:
+# QoS default (matches mqtt_compass.config.BrokerSettings.qos).
+DEFAULT_QOS = 0
