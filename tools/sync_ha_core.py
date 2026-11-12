@@ -48,10 +48,10 @@ def copy_core(check_only: bool) -> list[str]:
         changed.append(str(destination.relative_to(ROOT)))
         if not check_only:
             try:
-        shutil.copy2(source, destination)
-    except PermissionError:
-        # Mounts without permission for utime/chmod (e.g. NFS with strict options).
-        shutil.copyfile(source, destination)
+                shutil.copy2(source, destination)
+            except PermissionError:
+                # Mounts without permission for utime/chmod (e.g. NFS with strict options).
+                shutil.copyfile(source, destination)
 
     # The __init__.py of the core package is not copied - the files are used as plain modules.
     init = core_target / "__init__.py"
@@ -132,10 +132,10 @@ def copy_static(check_only: bool) -> list[str]:
         changed.append(str(destination.relative_to(ROOT)))
         if not check_only:
             try:
-        shutil.copy2(source, destination)
-    except PermissionError:
-        # Mounts without permission for utime/chmod (e.g. NFS with strict options).
-        shutil.copyfile(source, destination)
+                shutil.copy2(source, destination)
+            except PermissionError:
+                # Mounts without permission for utime/chmod (e.g. NFS with strict options).
+                shutil.copyfile(source, destination)
 
     return changed
 
