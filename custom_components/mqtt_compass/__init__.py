@@ -26,6 +26,7 @@ from homeassistant.helpers.typing import ConfigType
 from .api import (
     BrokerView,
     BrokersView,
+    DebugView,
     PublishView,
     StatusView,
     TreeView,
@@ -74,6 +75,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # The REST API. The views are registered only once, they work with the first entry.
     if not hass.data[DOMAIN].get("_views_registered"):
         hass.http.register_view(BrokersView)
+        hass.http.register_view(DebugView)
         hass.http.register_view(BrokerView)
         hass.http.register_view(StatusView)
         hass.http.register_view(TreeView)

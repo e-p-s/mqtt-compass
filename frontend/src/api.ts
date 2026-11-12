@@ -22,10 +22,43 @@ function apiPrefix(): string {
  * runs in an iframe, but it has the same origin as the frontend of Home Assistant - so it
  * can read the token of the parent window from the local storage.
  */
+/**
+ * The token pushed by the panel of Home Assistant.
+ *
+ * Home Assistant 2026 does not keep `hassTokens` in the local storage of the window any more -
+ * so the panel element pushes its current access token into the iframe with `postMessage`. The
+ * iframe asks for a fresh token whenever the API answers with 401.
+ */
+let panelToken: string | null = null;
+
+window.addEventListener('message', event => {
+    if (event.origin !== window.location.origin) {
+        return;
+    }
+    const data = event.data as { type?: string; token?: string };
+    if (data && data.type === 'mqtt_compass_token' && typeof data.token === 'string') {
+        panelToken = data.token;
+    }
+});
+
+/** Ask the panel of Home Assistant for a fresh token. */
+function askParentForToken(): void {
+    try {
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'mqtt_compass_token_request' }, window.location.origin);
+        }
+    } catch {
+        /* the parent window is not reachable */
+    }
+}
+
 function token(): string | null {
     const fromUrl = new URLSearchParams(window.location.search).get('token');
     if (fromUrl) {
         return fromUrl;
+    }
+    if (panelToken) {
+        return panelToken;
     }
     try {
         if (window.parent && window.parent !== window) {
@@ -53,7 +86,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
         headers.set('Authorization', `Bearer ${jwt}`);
     }
 
-    const response = await fetch(`${apiPrefix()}${path}`, { ...init, headers });
+    let response = await fetch(`${apiPrefix()}${path}`, { ...init, headers });
+    if (response.status === 401) {
+        // The token of the panel may have expired - ask for a fresh one and try once more.
+        askParentForToken();
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const fresh = token();
+        if (fresh && fresh !== jwt) {
+            headers.set('Authorization', `Bearer ${fresh}`);
+            response = await fetch(`${apiPrefix()}${path}`, { ...init, headers });
+        }
+    }
     if (!response.ok) {
         let detail = `${response.status} ${response.statusText}`;
         try {

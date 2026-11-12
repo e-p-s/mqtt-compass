@@ -76,6 +76,53 @@ async def _apply_broker_update(request: Any, service: BrokerService) -> Any:
     return HomeAssistantView.json({"ok": True, "message": "Reconnected."})
 
 
+class DebugView(HomeAssistantView):
+    """Diagnostics of the integration - for support, admins only.
+
+    Answers every question that is needed to analyse a broken panel from the outside:
+    is the entry set up, is the client thread alive, did any value arrive as bytes,
+    how many topics are known. Never exposes the password.
+    """
+
+    url = f"{API_PREFIX}/debug"
+    name = f"api:{DOMAIN}:debug"
+    requires_auth = True
+
+    async def get(self, request) -> Any:
+        """Report the internals of the integration."""
+        user = getattr(request, "user", None)
+        if user is None or not user.is_admin:
+            return _error(403, "admin only")
+        hass = _hass(request)
+        data = hass.data.get(DOMAIN, {})
+        out: dict[str, Any] = {"views_registered": bool(data.get("_views_registered")), "entries": {}}
+        for key, value in data.items():
+            if key == "_views_registered" or not isinstance(value, BrokerService):
+                continue
+            entry: dict[str, Any] = {}
+            try:
+                entry["status"] = value.status()
+                settings = value.settings
+                entry["settings_types"] = {
+                    name: type(getattr(settings, name)).__name__
+                    for name in ("host", "port", "username", "password", "keepalive", "protocol", "subscribe", "qos")
+                }
+                entry["host"] = settings.host
+                entry["port"] = settings.port
+                entry["username"] = settings.username
+                entry["has_password"] = bool(settings.password)
+                client = value._client
+                entry["client"] = None if client is None else {
+                    "thread_alive": client._thread.is_alive() if client._thread else None,
+                    "state": client._state,
+                }
+            except Exception as err:  # noqa: BLE001
+                entry["error"] = f"{type(err).__name__}: {err}"
+            out["entries"][key] = entry
+        _LOG.debug("debug view: %s", out)
+        return self.json(out)
+
+
 class HomeAssistantError(Exception):
     """The integration is not ready."""
 
@@ -91,6 +138,7 @@ class BrokersView(HomeAssistantView):
         """Return the list with the status of every broker."""
         service = _service(_hass(request))
         status = service.status()
+        _LOG.debug("GET /brokers: state=%s connected=%s", status.get("state"), status.get("connected"))
         return self.json({
             "brokers": [
                 {
