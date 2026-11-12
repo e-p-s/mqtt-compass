@@ -90,7 +90,7 @@ class DebugView(HomeAssistantView):
 
     async def get(self, request) -> Any:
         """Report the internals of the integration."""
-        user = getattr(request, "user", None)
+        user = request.get("hass_user")
         if user is None or not user.is_admin:
             return _error(403, "admin only")
         hass = _hass(request)
