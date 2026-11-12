@@ -174,12 +174,12 @@ class BrokerView(HomeAssistantView):
     name = f"api:{DOMAIN}:broker"
     requires_auth = True
 
-    async def get(self, request) -> Any:
+    async def get(self, request, broker_id: str = "") -> Any:
         """Return the settings. The password is masked."""
         service = _service(_hass(request))
         return self.json({"broker": service.settings.to_dict(with_secret=False)})
 
-    async def put(self, request) -> Any:
+    async def put(self, request, broker_id: str = "") -> Any:
         """Change the settings and reconnect."""
         return await _apply_broker_update(request, _service(_hass(request)))
 
@@ -191,7 +191,7 @@ class TreeView(HomeAssistantView):
     name = f"api:{DOMAIN}:tree"
     requires_auth = True
 
-    async def get(self, request) -> Any:
+    async def get(self, request, broker_id: str = "") -> Any:
         """Return the tree. The payloads can be cut - see the standalone server."""
         service = _service(_hass(request))
         length = _max_value_length(request)
@@ -205,7 +205,7 @@ class ValueView(HomeAssistantView):
     name = f"api:{DOMAIN}:value"
     requires_auth = True
 
-    async def get(self, request) -> Any:
+    async def get(self, request, broker_id: str = "") -> Any:
         """Return the value of the topic."""
         service = _service(_hass(request))
         value = service.tree.value_of(request.query.get("topic", ""))
@@ -221,7 +221,7 @@ class UpdatesView(HomeAssistantView):
     name = f"api:{DOMAIN}:updates"
     requires_auth = True
 
-    async def get(self, request) -> Any:
+    async def get(self, request, broker_id: str = "") -> Any:
         """Return the changes."""
         service = _service(_hass(request))
         try:
@@ -238,7 +238,7 @@ class StatusView(HomeAssistantView):
     name = f"api:{DOMAIN}:status"
     requires_auth = True
 
-    async def get(self, request) -> Any:
+    async def get(self, request, broker_id: str = "") -> Any:
         """Return the status."""
         return self.json(_service(_hass(request)).status())
 
@@ -250,7 +250,7 @@ class PublishView(HomeAssistantView):
     name = f"api:{DOMAIN}:publish"
     requires_auth = True
 
-    async def post(self, request) -> Any:
+    async def post(self, request, broker_id: str = "") -> Any:
         """Publish the message."""
         service = _service(_hass(request))
         try:
