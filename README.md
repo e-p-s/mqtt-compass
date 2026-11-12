@@ -1,13 +1,39 @@
 # MQTT Compass
 
+[![HACS][hacs-shield]][hacs]
+[![License: MIT][license-shield]][license]
+![Home Assistant 2026.11](https://img.shields.io/badge/Home%20Assistant-2026.11-blue)
+
 Ein MQTT-Broker-Browser mit einem klassischen Objektbaum — als eigenständiges Werkzeug,
-ohne Abhängigkeit von einer Plattform.
+ohne Abhängigkeit von einer Plattform. In Home Assistant als Custom Integration nutzbar
+(Panel im Seitenband), darüber hinaus als eigenes Werkzeug mit Python-Server.
 
 Die Oberfläche ist ein Eigenbau auf Basis von **MUI 9** und **React 19**: eigener
 Objektbaum mit Führungslinien, eigene Symbole im Material-Stil, eigene Übersetzungen
 (Deutsch/Englisch) und ein eigenes Farbsystem mit vier Farbfamilien. Jede Familie hat
 eine dunkle und eine helle Variante — und jede einzelne Farbe lässt sich in den
 Einstellungen ändern.
+
+## Bilder
+
+Ansichten mit Beispielwerten — die Screenshots zeigen einen lokalen Demo-Broker
+(`tools/dev_broker.py` + `tools/publish_sample.py`), keine Produktivdaten.
+
+![Topic-Baum](images/01-overview.png)
+
+Der Baum: oberste Topics als Schnellfilter, Werte inline, QoS/Retain/Zeit in eigenen Spalten.
+
+![Alles aufgeklappt](images/02-expanded.png)
+
+Kompletter Baum mit Führungslinien.
+
+![Suche](images/03-search.png)
+
+Topic-Filter mit Trefferzähler — auch über JSON-Unterwerte.
+
+![Detail auf dem Handy](images/04-mobile.png)
+
+Detail-Dialog auf schmalen Screens: JSON aufgeschlüsselt, Rohwert mit Kopier-Knopf.
 
 ## Dokumentation
 
@@ -65,9 +91,30 @@ Einstellungen ändern.
 
 ## Installation
 
+### Home Assistant — HACS (empfohlen)
+
+1. In HACS über **⋮ → Benutzerdefinierte Repositories** dieses Repository hinzufügen
+   (Kategorie: *Integration*)
+2. **MQTT Compass** → **Herunterladen**
+3. Home Assistant **vollständig neu starten** (Neuladen reicht nicht)
+4. **Einstellungen → Geräte & Dienste → Integration hinzufügen** → *MQTT Compass*
+5. Adresse und Zugangsdaten des Brokers eintragen — fertig
+
+Das Panel erscheint danach im Seitenband.
+
+### Home Assistant — manuell
+
+1. Neueste Version unter [Releases](https://github.com/e-p-s/mqtt-compass/releases)
+   herunterladen (Quellcode-ZIP) und entpacken
+2. Den Ordner `custom_components/mqtt_compass/` nach
+   `<config>/custom_components/mqtt_compass/` kopieren
+3. Home Assistant **vollständig neu starten**, Integration wie oben hinzufügen
+
+### Eigenständig (pip)
+
 ```bash
-pip install -e ".[server]"
-mqtt-compass --broker-host 192.168.1.10 --broker-port 1883
+pip install "mqtt-compass[server] @ git+https://github.com/e-p-s/mqtt-compass"
+mqtt-compass --broker-host 127.0.0.1 --broker-port 1883
 ```
 
 Die Weboberfläche läuft danach auf <http://localhost:8088>.
@@ -248,20 +295,7 @@ Für lokale Tests ohne echten Broker gibt es einen Mini-Broker (mit dem venv):
 
 Die Integration liegt in `custom_components/mqtt_compass/` — im Repository-Wurzelverzeichnis,
 damit HACS sie findet. Das gebaute Frontend ist eingecheckt, weil HACS nicht baut.
-
-### Über HACS
-
-1. Dieses Repository als benutzerdefiniertes Repository in HACS hinzufügen
-   (Kategorie: *Integration*)
-2. *MQTT Compass* installieren
-3. Home Assistant **vollständig neu starten** (Neuladen reicht nicht)
-4. *Einstellungen* → *Geräte & Dienste* → *Integration hinzufügen* → *MQTT Compass*
-5. Adresse, Port und Zugangsdaten des Brokers eintragen
-
-### Von Hand
-
-`custom_components/mqtt_compass/` nach `/config/custom_components/` kopieren und
-Home Assistant vollständig neu starten.
+Installation: siehe [Installation](#installation).
 
 ### Das Panel
 
@@ -278,8 +312,8 @@ Die Integration öffnet eine **eigene** MQTT-Verbindung: die MQTT-Integration vo
 kann nur die konfigurierten Topics abonnieren, ein Explorer muss aber alles sehen, was der
 Broker kennt. Genutzt wird nur lesend — bis jemand im Panel eine Nachricht publiziert.
 
-**Status:** Die Integration ist implementiert und seit v0.1.7 gegen Home Assistant 2026.11
-live getestet (Panel im Seitenband, Broker-Verbindung, Publish). Die Live-Aktualisierungen
+**Status:** Live gegen Home Assistant 2026.11 getestet (Panel im Seitenband,
+Broker-Verbindung, Live-Aktualisierungen, Publish aus dem Panel). Die Live-Aktualisierungen
 laufen im Panel über Polling (`/api/mqtt_compass/updates`), weil das Panel-iframe keinen
 eigenen WebSocket öffnet. Die Authentifizierung liest das Panel aus dem Local Storage des
 übergeordneten Fensters (gleiche Origin).
@@ -302,3 +336,8 @@ eigenen WebSocket öffnet. Die Authentifizierung liest das Panel aus dem Local S
 ## Lizenz
 
 MIT
+
+[hacs-shield]: https://img.shields.io/badge/HACS-Custom-orange.svg
+[hacs]: https://hacs.xyz/
+[license-shield]: https://img.shields.io/badge/License-MIT-yellow.svg
+[license]: LICENSE
