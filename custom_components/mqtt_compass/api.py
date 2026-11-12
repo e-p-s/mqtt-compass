@@ -123,7 +123,7 @@ class DebugView(HomeAssistantView):
             except Exception as err:  # noqa: BLE001
                 entry["error"] = f"{type(err).__name__}: {err}"
             out["entries"][key] = entry
-        _LOG.debug("debug view: %s", out)
+        _log.debug("debug view: %s", out)
         return self.json(out)
 
 
@@ -142,7 +142,7 @@ class BrokersView(HomeAssistantView):
         """Return the list with the status of every broker."""
         service = _service(_hass(request))
         status = service.status()
-        _LOG.debug("GET /brokers: state=%s connected=%s", status.get("state"), status.get("connected"))
+        _log.debug("GET /brokers: state=%s connected=%s", status.get("state"), status.get("connected"))
         return self.json({
             "brokers": [
                 {
