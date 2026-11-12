@@ -127,9 +127,16 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 
 def _settings_from_entry(entry: ConfigEntry) -> BrokerSettings:
-    """Build the broker settings from the config entry."""
+    """Build the broker settings from the config entry.
+
+    The id and the name are not part of the stored data (the standalone server manages
+    them itself) - derive them from the entry so that the REST URLs of the web UI
+    (`/brokers/<id>/...`) are never built with an empty id.
+    """
     data: ConfigType = {**entry.data, **entry.options}
     return BrokerSettings(
+        id=data.get("id") or entry.entry_id,
+        name=data.get("name") or entry.title,
         host=data.get(CONF_HOST, "localhost"),
         port=data.get(CONF_PORT, DEFAULT_PORT),
         username=data.get(CONF_USERNAME),

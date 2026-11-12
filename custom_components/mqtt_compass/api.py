@@ -90,10 +90,14 @@ class DebugView(HomeAssistantView):
 
     async def get(self, request) -> Any:
         """Report the internals of the integration."""
-        user = request.get("hass_user")
-        if user is None or not user.is_admin:
-            return _error(403, "admin only")
-        hass = _hass(request)
+        try:
+            user = request.get("hass_user")
+            if user is None or not user.is_admin:
+                return _error(403, "admin only")
+            hass = _hass(request)
+        except Exception:  # noqa: BLE001
+            import traceback
+            return self.json({"guard_error": traceback.format_exc()})
         data = hass.data.get(DOMAIN, {})
         out: dict[str, Any] = {"views_registered": bool(data.get("_views_registered")), "entries": {}}
         for key, value in data.items():
