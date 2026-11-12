@@ -212,6 +212,12 @@ export class LiveConnection {
     open(): void {
         this.closed = false;
         this.socketOpened = false;
+        if ((window as unknown as { MQTT_COMPASS_API?: string }).MQTT_COMPASS_API) {
+            // Inside Home Assistant the integration offers REST only (no `/ws` route) -
+            // so the panel does not try a WebSocket and starts polling right away.
+            this.startPolling();
+            return;
+        }
         const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
         const jwt = token();
         // The tree is fetched over REST - a browser throttles the messages of a background

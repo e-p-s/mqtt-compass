@@ -23,6 +23,16 @@ import shutil
 import sys
 from pathlib import Path
 
+
+
+def _copy2(src, dst):
+    """copy2, aber ohne utime-Rechte zu brauchen (NFS wirft sonst PermissionError)."""
+    try:
+        shutil.copy2(src, dst)
+    except PermissionError:
+        shutil.copyfile(src, dst)
+
+
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGE = ROOT / "mqtt_compass"
 TARGET = ROOT / "custom_components" / "mqtt_compass"
@@ -48,7 +58,7 @@ def copy_core(check_only: bool) -> list[str]:
         changed.append(str(destination.relative_to(ROOT)))
         if not check_only:
             try:
-                shutil.copy2(source, destination)
+                _copy2(source, destination)
             except PermissionError:
                 # Mounts without permission for utime/chmod (e.g. NFS with strict options).
                 shutil.copyfile(source, destination)
@@ -79,7 +89,7 @@ def _copy_tree(source: Path, destination: Path) -> bool:
         if item.is_dir():
             changed = _copy_tree(item, target) or changed
         elif not target.exists() or not filecmp.cmp(item, target, shallow=False):
-            shutil.copy2(item, target)
+            _copy2(item, target)
             changed = True
 
     for item in destination.iterdir():
@@ -132,7 +142,7 @@ def copy_static(check_only: bool) -> list[str]:
         changed.append(str(destination.relative_to(ROOT)))
         if not check_only:
             try:
-                shutil.copy2(source, destination)
+                _copy2(source, destination)
             except PermissionError:
                 # Mounts without permission for utime/chmod (e.g. NFS with strict options).
                 shutil.copyfile(source, destination)
